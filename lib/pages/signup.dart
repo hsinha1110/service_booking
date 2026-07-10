@@ -1,9 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
-
-import 'package:servicebooking/pages/bottom_nav.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 
 class Signup extends StatefulWidget {
   const Signup({super.key});
@@ -13,11 +11,13 @@ class Signup extends StatefulWidget {
 }
 
 class _SignupState extends State<Signup> {
+  List<String> roles = ["Customer", "Service Provider"];
+
+  String selectedRole = "Customer";
   final TextEditingController name = TextEditingController();
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
   final _formkey = GlobalKey<FormState>();
-
   Future<void> signUp() async {
     try {
       UserCredential userCredential = await FirebaseAuth.instance
@@ -33,6 +33,7 @@ class _SignupState extends State<Signup> {
             "uid": userCredential.user!.uid,
             "name": name.text.trim(),
             "email": email.text.trim(),
+            "role": selectedRole,
             "createdAt": FieldValue.serverTimestamp(),
           });
 
@@ -154,7 +155,8 @@ class _SignupState extends State<Signup> {
                   },
                 ),
               ),
-              SizedBox(height: 20.0),
+              const SizedBox(height: 20),
+
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: TextFormField(
@@ -199,6 +201,66 @@ class _SignupState extends State<Signup> {
 
                     return null;
                   },
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton2<String>(
+                    isExpanded: true,
+                    value: selectedRole,
+
+                    items: roles
+                        .map(
+                          (role) => DropdownMenuItem<String>(
+                            value: role,
+                            child: Text(
+                              role,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+
+                    onChanged: (value) {
+                      setState(() {
+                        selectedRole = value!;
+                      });
+                    },
+
+                    buttonStyleData: ButtonStyleData(
+                      height: 60,
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4C59A5),
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                    ),
+
+                    iconStyleData: const IconStyleData(
+                      icon: Icon(
+                        Icons.keyboard_arrow_down,
+                        color: Colors.white,
+                      ),
+                    ),
+
+                    dropdownStyleData: DropdownStyleData(
+                      decoration: const BoxDecoration(color: Color(0xFF4C59A5)),
+                    ),
+
+                    menuItemStyleData: const MenuItemStyleData(
+                      height: 55,
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                  ),
                 ),
               ),
               SizedBox(height: 30.0),

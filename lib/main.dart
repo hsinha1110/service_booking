@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:servicebooking/service_provider/service_details.dart';
-
 import 'firebase_options.dart';
 import 'package:servicebooking/pages/login.dart';
 import 'package:servicebooking/pages/bottom_nav.dart';
@@ -26,7 +24,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: user == null ? const Login() : const ServiceDetails(),
+      home: user == null ? const Login() : const BottomNav(),
     );
   }
 }

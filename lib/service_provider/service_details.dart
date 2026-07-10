@@ -24,7 +24,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
 
-  List<String> services = ["Cleaning", "Painting", "Dainting", "Repairing"];
+  List<String> services = ["Cleaning", "Painting", "Laundry", "Repairing"];
   String selectedService = "Cleaning";
 
   String? id;
