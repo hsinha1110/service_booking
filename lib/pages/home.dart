@@ -52,7 +52,7 @@ class _HomeState extends State<Home> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Color.fromARGB(255, 255, 232, 235),
+                    Color.fromARGB(255, 239, 230, 231),
                     Color.fromARGB(255, 197, 227, 244),
                   ],
                   begin: Alignment.topRight,
