@@ -14,22 +14,37 @@ class _SignupState extends State<Login> {
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
   final _formkey = GlobalKey<FormState>();
-
   Future<void> login() async {
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email.text.trim(),
         password: password.text.trim(),
       );
-      Navigator.push(context, MaterialPageRoute(builder: (_) => BottomNav()));
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const BottomNav(),
+        ),
+      );
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? "Something went wrong")),
+        SnackBar(
+          content: Text(e.message ?? "Login failed"),
+        ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Invalid Credentials"),
+        ),
+      );
     }
   }
 
@@ -148,16 +163,9 @@ class _SignupState extends State<Login> {
               ),
               SizedBox(height: 30.0),
               GestureDetector(
-                onTap: () {
+                onTap: () async {
                   if (_formkey.currentState!.validate()) {
-                    Login();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => BottomNav()),
-                    );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Validation Successful")),
-                    );
+                    await login();
                   }
                 },
                 child: Center(
