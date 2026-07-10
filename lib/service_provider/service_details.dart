@@ -13,16 +13,53 @@ class ServiceDetails extends StatefulWidget {
 }
 
 class _ServiceDetailsState extends State<ServiceDetails> {
-  TextEditingController name = new TextEditingController();
-  TextEditingController charges = new TextEditingController();
-  TextEditingController desc = new TextEditingController();
+  final TextEditingController name = TextEditingController();
+  final TextEditingController charges = TextEditingController();
+  final TextEditingController desc = TextEditingController();
+  final TextEditingController date = TextEditingController();
+  final TextEditingController time = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final ImagePicker _imagePicker = ImagePicker();
+
+  DateTime? selectedDate;
+  TimeOfDay? selectedTime;
+
   List<String> services = ["Cleaning", "Painting", "Dainting", "Repairing"];
   String selectedService = "Cleaning";
 
-  final ImagePicker _imagePicker = ImagePicker();
   String? id;
   File? selectedImage;
+
+  Future<void> pickDate() async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2035),
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        selectedDate = pickedDate;
+        date.text = "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
+      });
+    }
+  }
+
+  Future<void> pickTime() async {
+    TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (pickedTime != null) {
+      setState(() {
+        selectedTime = pickedTime;
+        time.text = pickedTime.format(context);
+      });
+    }
+  }
+
   void showMessage(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -61,6 +98,8 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         "description": desc.text.trim(),
         "imageUrl": imageUrl,
         "createdAt": FieldValue.serverTimestamp(),
+        "availableDate": date.text.trim(),
+        "availableTime": time.text.trim(),
       });
 
       showMessage("Service Added Successfully", Colors.green);
@@ -330,6 +369,92 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                               fontWeight: FontWeight.w500,
                             ),
                             contentPadding: EdgeInsets.symmetric(vertical: 15),
+                          ),
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          "Available Date",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        decoration: BoxDecoration(
+                          color: const Color(0xffececf8),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: TextFormField(
+                          controller: date,
+                          readOnly: true,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.black,
+                          ),
+                          onTap: pickDate,
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            hintText: "Select Date",
+                            hintStyle: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.black,
+                            ),
+                            suffixIcon: Icon(Icons.calendar_today),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          "Available Time",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        decoration: BoxDecoration(
+                          color: const Color(0xffececf8),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: TextFormField(
+                          controller: time,
+                          readOnly: true,
+                          onTap: pickTime,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.black,
+                          ),
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            hintText: "Select Time",
+                            hintStyle: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.black,
+                            ),
+                            suffixIcon: Icon(Icons.access_time),
                           ),
                         ),
                       ),
