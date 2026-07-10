@@ -6,24 +6,21 @@ import 'package:servicebooking/pages/order.dart';
 import 'package:servicebooking/pages/profile.dart';
 
 class BottomNav extends StatefulWidget {
+  const BottomNav({super.key});
+
   @override
   State<StatefulWidget> createState() => _BottomNavState();
 }
 
 class _BottomNavState extends State<BottomNav> {
-  final List<Widget> pages = [
-    Home(),
-    Order(),
-    ChatPage(),
-    Profile(),
-  ];
+  final List<Widget> pages = [Home(), Order(), ChatPage(), Profile()];
 
   late Home homePage;
   late Order order;
   late ChatPage chatPage;
   late Profile profilePage;
 
-   int currentIndex = 0;
+  int currentIndex = 0;
   @override
   Widget build(BuildContext context) {
     // TODO: implement build

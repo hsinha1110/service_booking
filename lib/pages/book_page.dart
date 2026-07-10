@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 class BookPage extends StatefulWidget {
   final Map<String, String> services;
+
   const BookPage({super.key, required this.services});
   @override
   State<BookPage> createState() => _BookPageState();
 }
 
 class _BookPageState extends State<BookPage> {
+
   @override
   void initState() {
     super.initState();
@@ -67,7 +69,7 @@ class _BookPageState extends State<BookPage> {
                       const SizedBox(height: 5),
 
                         Text(
-                        widget.services["name"]!,
+                          widget.services["name"]!,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
