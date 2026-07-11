@@ -234,7 +234,11 @@ class _DetailsState extends State<Details> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => BookDetails()),
+                        MaterialPageRoute(
+                          builder: (_) => BookDetails(
+                            services: widget.services,
+                          ),
+                        ),
                       );
                     },
                     child: const Text(

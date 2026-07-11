@@ -1,8 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:servicebooking/services/database.dart';
 
 class BookDetails extends StatefulWidget {
-  const BookDetails({super.key});
+  final Map<String, dynamic> services;
+  const BookDetails({super.key, required this.services});
+
 
   @override
   State<BookDetails> createState() => _BookDetailsState();
@@ -10,14 +14,45 @@ class BookDetails extends StatefulWidget {
 
 class _BookDetailsState extends State<BookDetails> {
   final TextEditingController customerName = TextEditingController();
+  final TextEditingController customerEmail = TextEditingController();
   final TextEditingController date = TextEditingController();
   final TextEditingController fromTime = TextEditingController();
   final TextEditingController toTime = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    getUserData();
+  }
+
+  String profileImage = "";
   DatabaseMethods databaseMethods = DatabaseMethods();
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
 
+  void showMessage(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+  Future<void> getUserData() async {
+    DocumentSnapshot doc = await databaseMethods.getUserDetails();
+
+    if (doc.exists) {
+      final user = doc.data() as Map<String, dynamic>;
+
+      setState(() {
+        customerName.text = user["name"] ?? "";
+        customerEmail.text = user["email"] ?? "";
+        profileImage = user["profileImage"] ?? "";
+      });
+    }
+  }
   Future<void> pickDate() async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -125,13 +160,40 @@ class _BookDetailsState extends State<BookDetails> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Center(
-                      child: const CircleAvatar(
-                        radius: 50, // 100x100
-                        backgroundImage: AssetImage(
-                          "assets/images/profile.png",
-                        ),
-                      ),
+                    FutureBuilder<DocumentSnapshot>(
+                      future: databaseMethods.getUserDetails(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const SizedBox();
+                        }
+
+                        if (!snapshot.hasData ||
+                            snapshot.data!.data() == null) {
+                          return const Center(
+                            child: CircleAvatar(
+                              radius: 50,
+                              backgroundImage: AssetImage(
+                                "assets/images/profile.png",
+                              ),
+                            ),
+                          );
+                        }
+
+                        final user = snapshot.data!.data() as Map<String, dynamic>;
+                        print(user);
+                        customerName.text = user["name"] ?? "";
+                        customerEmail.text = user["email"] ?? "";
+
+                        return Center(
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundImage: NetworkImage(
+                              user["profileImage"] ?? "",
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     SizedBox(height: 40.0),
                     const Padding(
@@ -155,6 +217,7 @@ class _BookDetailsState extends State<BookDetails> {
 
                       child: TextFormField(
                         controller: customerName,
+                        readOnly: true,
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.black,
@@ -162,8 +225,7 @@ class _BookDetailsState extends State<BookDetails> {
                         ),
 
                         decoration: const InputDecoration(
-                          hintText: "Enter Customer Name",
-                          border: InputBorder.none,
+                           border: InputBorder.none,
                           hintStyle: TextStyle(
                             color: Colors.black, // Hint text color
                             fontSize: 20,
@@ -193,7 +255,8 @@ class _BookDetailsState extends State<BookDetails> {
                       ),
 
                       child: TextFormField(
-                        controller: customerName,
+                        readOnly: true,
+                        controller: customerEmail,
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.black,
@@ -372,7 +435,25 @@ class _BookDetailsState extends State<BookDetails> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        onPressed: () {},
+                           onPressed: () async {
+
+                             await databaseMethods.bookService(
+                               customerId: FirebaseAuth.instance.currentUser!.uid,
+                               customerName: customerName.text,
+                               customerEmail: customerEmail.text,
+
+                               providerId: widget.services["providerId"]?.toString() ?? "",
+                               providerName: widget.services["providerName"]?.toString() ?? "",
+                               category: widget.services["category"]?.toString() ?? "",
+                               serviceId: widget.services["id"]?.toString() ?? "",
+                               hourlyCharge: widget.services["hourlyCharge"].toString()??"",
+                               bookingDate: date.text,
+                               fromTime: fromTime.text,
+                               toTime: toTime.text,
+                             );
+                             showMessage("Booking Successful", Colors.green);
+                           },
+
                         child: const Text(
                           "Confirm Booking",
                           style: TextStyle(

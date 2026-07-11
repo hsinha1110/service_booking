@@ -15,6 +15,45 @@ class DatabaseMethods {
     );
   }
 
+  Future<void> bookService({
+    required String customerName,
+    required String customerEmail,
+    required String customerId,
+    required String providerId,
+    required String providerName,
+    required String category,
+    required String serviceId,
+    required String bookingDate,
+    required String fromTime,
+    required String toTime,
+    required String hourlyCharge,
+  }) async {
+    await _firestore.collection("bookings").add({
+      "customerId": customerId,
+      "customerName": customerName,
+      "customerEmail": customerEmail,
+      "providerName": providerName,
+      "category": category,
+      "hourlyCharge": hourlyCharge,
+      "bookingDate": bookingDate,
+      "fromTime": fromTime,
+      "toTime": toTime,
+      "status": "Pending",
+      "createdAt": FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<QuerySnapshot<Map<String, dynamic>>> getCustomerBookings() async {
+    String uid = _auth.currentUser!.uid;
+
+    print("Current UID => $uid");
+
+    return await _firestore
+        .collection("bookings")
+        .where("customerId", isEqualTo: uid)
+        .get();
+  }
+
   Future<UserCredential> signUp({
     required String name,
     required String email,
