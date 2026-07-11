@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -27,6 +28,8 @@ class MyApp extends StatelessWidget {
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, authSnapshot) {
+          print("Auth User => ${authSnapshot.data?.uid}");
+
           if (authSnapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
@@ -34,32 +37,42 @@ class MyApp extends StatelessWidget {
           }
 
           if (!authSnapshot.hasData) {
+            print("No Logged In User");
             return const Login();
           }
 
-          return FutureBuilder(
-            future: DatabaseMethods().getUserDetails(),
+          return FutureBuilder<DocumentSnapshot>(
+            future: databaseMethods.getUserDetails(),
             builder: (context, snapshot) {
+              print("Future State => ${snapshot.connectionState}");
+
+              if (snapshot.hasData) {
+                print(snapshot.data!.data());
+              }
+
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Scaffold(
-                  body: const Center(
-                    child: SizedBox(
-                      width: 50,
-                      height: 50,
-                      child: CircularProgressIndicator(
-                        color: Color(0xff284a79),
-                        strokeWidth: 5,
-                      ),
-                    ),
-                  ),                );
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              if (snapshot.hasError) {
+                print(snapshot.error);
+                return const Scaffold(body: Center(child: Text("Error")));
               }
 
               final data = snapshot.data!.data() as Map<String, dynamic>;
 
+              print("Role => ${data["role"]}");
+
               if (data["role"] == "Customer") {
                 return const BottomNav();
               } else {
-                return const ServiceDetails();
+                return const Scaffold(
+                  body: Center(
+                    child: Text("Provider Login Success"),
+                  ),
+                );
               }
             },
           );

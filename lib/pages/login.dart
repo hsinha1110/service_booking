@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:servicebooking/main.dart';
 import 'package:servicebooking/pages/bottom_nav.dart';
 import 'package:servicebooking/pages/signup.dart';
+import 'package:servicebooking/service_provider/service_details.dart';
 import 'package:servicebooking/services/database.dart';
 
 class Login extends StatefulWidget {
@@ -17,24 +19,46 @@ class _SignupState extends State<Login> {
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
   final _formkey = GlobalKey<FormState>();
-
+  @override
+  void initState() {
+    super.initState();
+    print("BottomNav Opened");
+  }
   Future<void> login() async {
     try {
-      await DatabaseMethods().login(
+      UserCredential user = await databaseMethods.login(
         email: email.text.trim(),
         password: password.text.trim(),
       );
+
+      DocumentSnapshot doc = await databaseMethods.getUserDetails();
+      final data = doc.data() as Map<String, dynamic>;
+
+      if (!mounted) return;
+
+      if (data["role"] == "Customer") {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const BottomNav()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const ServiceDetails()),
+        );
+      }
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? "Login failed")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message ?? "Login failed")));
     }
   }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+     return Scaffold(
       backgroundColor: const Color(0xFF283793),
       body: SingleChildScrollView(
         child: Form(
