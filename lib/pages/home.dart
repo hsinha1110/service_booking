@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:servicebooking/pages/book_page.dart';
 import 'package:servicebooking/pages/categories.dart';
+import 'package:servicebooking/pages/details.dart';
 import 'package:servicebooking/services/database.dart';
 
 class Home extends StatefulWidget {
@@ -79,30 +80,57 @@ class _HomeState extends State<Home> {
                             FutureBuilder<DocumentSnapshot>(
                               future: databaseMethods.getUserDetails(),
                               builder: (context, snapshot) {
-                                if (!snapshot.hasData) {
-                                  return const SizedBox();
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const SizedBox(
+                                    height: 56,
+                                    child: SizedBox(),
+                                  );
                                 }
+
+                                if (!snapshot.hasData || snapshot.data!.data() == null) {
+                                  return const Text("Hi");
+                                }
+
                                 final userData =
-                                    snapshot.data!.data()
-                                        as Map<String, dynamic>;
-                                return Text(
-                                  "Hi ${userData["name"]}",
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.orange,
+                                snapshot.data!.data() as Map<String, dynamic>;
+
+                                return SizedBox(
+                                  width: MediaQuery.of(context).size.width - 40,
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          "Hi ${userData["name"]}",
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.orange,
+                                          ),
+                                        ),
+                                      ),
+
+                                      const SizedBox(width: 12),
+
+                                      CircleAvatar(
+                                        radius: 28,
+                                        backgroundColor: Colors.grey.shade200,
+                                        backgroundImage:
+                                        (userData["profileImage"] != null &&
+                                            userData["profileImage"] != "")
+                                            ? NetworkImage(userData["profileImage"])
+                                            : null,
+                                        child:
+                                        (userData["profileImage"] == null ||
+                                            userData["profileImage"] == "")
+                                            ? const Icon(Icons.person)
+                                            : null,
+                                      ),
+                                    ],
                                   ),
                                 );
                               },
-                            ),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(25),
-                              child: Image.asset(
-                                "assets/images/girl.jpg",
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.cover,
-                              ),
                             ),
                           ],
                         ),
@@ -236,146 +264,156 @@ class _HomeState extends State<Home> {
                 ),
               ),
             ),
-            ListView.builder(
-              padding: EdgeInsets.zero,
-              itemCount: popularServices.length,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                final services = popularServices[index];
+            FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              future: databaseMethods.getServiceDetails(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
 
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => BookPage(services: services),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 15,
-                      vertical: 5,
-                    ),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 197, 227, 244),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.asset(
-                            services["image"]!,
-                            width: 90,
-                            height: 136,
-                            fit: BoxFit.cover,
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(
+                    child: Text("No Services Found"),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: EdgeInsets.zero,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: snapshot.data!.docs.length,
+                  itemBuilder: (context, index) {
+                    final services = snapshot.data!.docs[index].data();
+
+                    List images = services["imageUrls"] ?? [];
+
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => Details(services: services),
                           ),
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 15,
+                          vertical: 5,
                         ),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(255, 197, 227, 244),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(
+                                images.isNotEmpty ? images.first : "",
+                                width: 90,
+                                height: 136,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
 
-                        const SizedBox(width: 15),
+                            const SizedBox(width: 15),
 
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Icon(
-                                    Icons.star,
-                                    color: Colors.orange,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 5),
                                   Text(
-                                    services["rating"]!,
+                                    services["category"],
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 5),
+
+                                  Text(
+                                    "By ${services["providerName"]}",
+                                  ),
+
+                                  const SizedBox(height: 10),
+
+                                  Text(
+                                    "${services["hourlyCharge"]}/Hour",
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                ],
-                              ),
+                                  const SizedBox(height: 10),
 
-                              const SizedBox(height: 5),
-
-                              Text(
-                                services["title"]!,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                ),
-                              ),
-
-                              const SizedBox(height: 5),
-
-                              Text(
-                                "By ${services["name"]!}",
-                                style: const TextStyle(
-                                  color: Colors.black45,
-                                  fontSize: 15,
-                                ),
-                              ),
-
-                              const SizedBox(height: 10),
-
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Container(
-                                      alignment: Alignment.center,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 10,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color.fromARGB(
-                                          255,
-                                          94,
-                                          172,
-                                          202,
-                                        ),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Text(
-                                        services["price"]!,
-                                        style: const TextStyle(
-                                          color: Colors.white,
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Container(
+                                          alignment: Alignment.center,
+                                          padding: const EdgeInsets.symmetric(vertical: 12),
+                                          decoration: BoxDecoration(
+                                            color: const Color.fromARGB(255, 94, 172, 202),
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child: Text(
+                                            "${services["hourlyCharge"]}/Hour",
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ),
 
-                                  const SizedBox(width: 10),
+                                      const SizedBox(width: 10),
 
-                                  Expanded(
-                                    child: Container(
-                                      alignment: Alignment.center,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 10,
+                                      Expanded(
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => Details(services: services),
+                                              ),
+                                            );
+                                          },
+                                          child: Container(
+                                            alignment: Alignment.center,
+                                            padding: const EdgeInsets.symmetric(vertical: 12),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xff284a79),
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            child: const Text(
+                                              "Book Now",
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xff284a79),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: const Text(
-                                        "Book Now",
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 );
               },
-            ),
+            )
           ],
         ),
       ),

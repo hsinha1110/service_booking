@@ -1,8 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:servicebooking/services/database.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class Signup extends StatefulWidget {
   const Signup({super.key});
@@ -15,32 +18,72 @@ class _SignupState extends State<Signup> {
   DatabaseMethods databaseMethods = DatabaseMethods();
   List<String> roles = ["Customer", "Service Provider"];
   String selectedRole = "Customer";
+  File? selectedImage;
+  final ImagePicker picker = ImagePicker();
   final TextEditingController name = TextEditingController();
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
   final _formkey = GlobalKey<FormState>();
 
+  Future<void> pickImage(ImageSource source) async {
+    final XFile? image = await picker.pickImage(
+      source: source,
+      imageQuality: 80,
+    );
+
+    if (image != null) {
+      setState(() {
+        selectedImage = File(image.path);
+      });
+    }
+  }
+
+  Future<String> uploadProfileImage() async {
+    if (selectedImage == null) return "";
+
+    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+
+    Reference ref = FirebaseStorage.instance
+        .ref()
+        .child("profileImages")
+        .child(fileName);
+
+    UploadTask uploadTask = ref.putFile(selectedImage!);
+
+    TaskSnapshot snapshot = await uploadTask;
+
+    String url = await snapshot.ref.getDownloadURL();
+
+    print("Download URL => $url");
+
+    return url;
+  }
+
   Future<void> signUp() async {
     try {
+      if (selectedImage == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select profile image")),
+        );
+        return;
+      }
+
+      String imageUrl = await uploadProfileImage();
+
       await DatabaseMethods().signUp(
         name: name.text.trim(),
         email: email.text.trim(),
         password: password.text.trim(),
         role: selectedRole,
+        profileImage: imageUrl,
       );
-
+      print("Image URL => $imageUrl");
       if (!mounted) return;
       Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.message ?? "Signup failed")));
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
@@ -53,14 +96,64 @@ class _SignupState extends State<Signup> {
           key: _formkey,
           child: Column(
             children: [
-              SizedBox(
-                width: double.infinity,
-                height: MediaQuery.of(context).size.height / 2.6,
-                child: Image.asset(
-                  "assets/images/above.png",
-                  fit: BoxFit.cover,
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 120),
+                  child: SizedBox(
+                    width: 100,
+                    height: 100,
+                    child: GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) {
+                            return SafeArea(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Wrap(
+                                  children: [
+                                    ListTile(
+                                      leading: const Icon(Icons.camera_alt),
+                                      title: const Text("Camera"),
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                        pickImage(ImageSource.camera);
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: const Icon(Icons.photo_library),
+                                      title: const Text("Gallery"),
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                        pickImage(ImageSource.gallery);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      child: CircleAvatar(
+                        radius: 55,
+                        backgroundColor: Colors.white,
+                        backgroundImage: selectedImage != null
+                            ? FileImage(selectedImage!)
+                            : null,
+                        child: selectedImage == null
+                            ? const Icon(
+                                Icons.camera_alt,
+                                size: 30,
+                                color: Colors.grey,
+                              )
+                            : null,
+                      ),
+                    ),
+                  ),
                 ),
               ),
+
               SizedBox(height: 20.0),
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),

@@ -20,6 +20,7 @@ class DatabaseMethods {
     required String email,
     required String password,
     required String role,
+    required String profileImage,
   }) async {
     UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
       email: email,
@@ -31,6 +32,7 @@ class DatabaseMethods {
       "name": name,
       "email": email,
       "role": role,
+      "profileImage": profileImage,
       "createdAt": FieldValue.serverTimestamp(),
     });
 

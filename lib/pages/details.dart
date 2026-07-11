@@ -93,7 +93,7 @@ class _DetailsState extends State<Details> {
                                   borderRadius: BorderRadius.circular(12),
                                   child: Image.network(
                                     images[index].toString(),
-                                    width: 250,
+                                    width: MediaQuery.of(context).size.width/1.2,
                                     fit: BoxFit.cover,
                                   ),
                                 );

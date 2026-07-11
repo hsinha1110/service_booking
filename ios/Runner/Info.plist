@@ -95,5 +95,12 @@
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs access to the camera.</string>
 
+    <!-- Camera Permission -->
+
+    <key>NSCameraUsageDescription</key>
+    <string>We need camera access to capture your profile picture.</string>
+
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>We need photo library access to select your profile picture.</string>
 </dict>
 </plist>
