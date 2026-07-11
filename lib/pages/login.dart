@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:servicebooking/main.dart';
 import 'package:servicebooking/pages/bottom_nav.dart';
 import 'package:servicebooking/pages/signup.dart';
+import 'package:servicebooking/services/database.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -11,43 +13,25 @@ class Login extends StatefulWidget {
 }
 
 class _SignupState extends State<Login> {
+  DatabaseMethods databaseMethods = DatabaseMethods();
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
   final _formkey = GlobalKey<FormState>();
+
   Future<void> login() async {
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await DatabaseMethods().login(
         email: email.text.trim(),
         password: password.text.trim(),
-      );
-
-      if (!mounted) return;
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const BottomNav(),
-        ),
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message ?? "Login failed"),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Invalid Credentials"),
-        ),
+        SnackBar(content: Text(e.message ?? "Login failed")),
       );
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

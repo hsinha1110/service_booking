@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:servicebooking/services/database.dart';
 
 class Signup extends StatefulWidget {
   const Signup({super.key});
@@ -11,37 +12,35 @@ class Signup extends StatefulWidget {
 }
 
 class _SignupState extends State<Signup> {
+  DatabaseMethods databaseMethods = DatabaseMethods();
   List<String> roles = ["Customer", "Service Provider"];
-
   String selectedRole = "Customer";
   final TextEditingController name = TextEditingController();
   final TextEditingController email = TextEditingController();
   final TextEditingController password = TextEditingController();
   final _formkey = GlobalKey<FormState>();
+
   Future<void> signUp() async {
     try {
-      UserCredential userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
-            email: email.text.trim(),
-            password: password.text.trim(),
-          );
+      await DatabaseMethods().signUp(
+        name: name.text.trim(),
+        email: email.text.trim(),
+        password: password.text.trim(),
+        role: selectedRole,
+      );
 
-      await FirebaseFirestore.instance
-          .collection("users")
-          .doc(userCredential.user!.uid)
-          .set({
-            "uid": userCredential.user!.uid,
-            "name": name.text.trim(),
-            "email": email.text.trim(),
-            "role": selectedRole,
-            "createdAt": FieldValue.serverTimestamp(),
-          });
-
+      if (!mounted) return;
       Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
-      print(e.message); // Firebase ka original message
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message ?? "Signup failed")));
     } catch (e) {
-      print(e.toString());
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
@@ -228,13 +227,11 @@ class _SignupState extends State<Signup> {
                           ),
                         )
                         .toList(),
-
                     onChanged: (value) {
                       setState(() {
                         selectedRole = value!;
                       });
                     },
-
                     buttonStyleData: ButtonStyleData(
                       height: 60,
                       width: double.infinity,
@@ -244,7 +241,6 @@ class _SignupState extends State<Signup> {
                         borderRadius: BorderRadius.circular(22),
                       ),
                     ),
-
                     iconStyleData: const IconStyleData(
                       icon: Icon(
                         Icons.keyboard_arrow_down,

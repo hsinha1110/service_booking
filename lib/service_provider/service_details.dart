@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:servicebooking/pages/login.dart';
+import 'package:servicebooking/services/database.dart';
 
 class ServiceDetails extends StatefulWidget {
   const ServiceDetails({super.key});
@@ -13,12 +15,13 @@ class ServiceDetails extends StatefulWidget {
 }
 
 class _ServiceDetailsState extends State<ServiceDetails> {
+  DatabaseMethods databaseMethods = DatabaseMethods();
   final TextEditingController name = TextEditingController();
   final TextEditingController charges = TextEditingController();
   final TextEditingController desc = TextEditingController();
   final TextEditingController date = TextEditingController();
-  final TextEditingController time = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+  TextEditingController fromTime = TextEditingController();
+  TextEditingController toTime = TextEditingController();  final _formKey = GlobalKey<FormState>();
   final ImagePicker _imagePicker = ImagePicker();
 
   DateTime? selectedDate;
@@ -29,6 +32,17 @@ class _ServiceDetailsState extends State<ServiceDetails> {
 
   String? id;
   File? selectedImage;
+  List<XFile> selectedImages = [];
+
+  Future<void> pickImages() async {
+    final List<XFile> images = await _imagePicker.pickMultiImage();
+
+    if (images.isNotEmpty) {
+      setState(() {
+        selectedImages.addAll(images);
+      });
+    }
+  }
 
   Future<void> pickDate() async {
     DateTime? pickedDate = await showDatePicker(
@@ -46,7 +60,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
     }
   }
 
-  Future<void> pickTime() async {
+  Future<void> pickFromTime() async {
     TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
@@ -54,12 +68,22 @@ class _ServiceDetailsState extends State<ServiceDetails> {
 
     if (pickedTime != null) {
       setState(() {
-        selectedTime = pickedTime;
-        time.text = pickedTime.format(context);
+        fromTime.text = pickedTime.format(context);
       });
     }
   }
+  Future<void> pickToTime() async {
+    TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
 
+    if (pickedTime != null) {
+      setState(() {
+        toTime.text = pickedTime.format(context);
+      });
+    }
+  }
   void showMessage(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -71,51 +95,63 @@ class _ServiceDetailsState extends State<ServiceDetails> {
     );
   }
 
-  Future<String> uploadImage() async {
-    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-    Reference reference = FirebaseStorage.instance
-        .ref()
-        .child("serviceImages")
-        .child(fileName);
+  Future<List<String>> uploadImages() async {
+    List<String> imageUrls = [];
 
-    UploadTask uploadTask = reference.putFile(selectedImage!);
+    for (XFile image in selectedImages) {
+      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
 
-    TaskSnapshot snapshot = await uploadTask;
+      Reference reference = FirebaseStorage.instance
+          .ref()
+          .child("serviceImages")
+          .child(fileName);
 
-    String imageUrl = await snapshot.ref.getDownloadURL();
+      UploadTask uploadTask = reference.putFile(File(image.path));
 
-    return imageUrl;
+      TaskSnapshot snapshot = await uploadTask;
+
+      String imageUrl = await snapshot.ref.getDownloadURL();
+
+      imageUrls.add(imageUrl);
+    }
+
+    return imageUrls;
   }
-
   Future<void> uploadService() async {
     try {
-      String imageUrl = await uploadImage();
+      List<String> imageUrls = await uploadImages();
 
       await FirebaseFirestore.instance.collection("services").add({
         "providerName": name.text.trim(),
         "hourlyCharge": charges.text.trim(),
         "category": selectedService,
         "description": desc.text.trim(),
-        "imageUrl": imageUrl,
-        "createdAt": FieldValue.serverTimestamp(),
+        "imageUrls": imageUrls,
         "availableDate": date.text.trim(),
-        "availableTime": time.text.trim(),
+        "availableFromTime": fromTime.text.trim(),
+        "availableFromToTime": toTime.text.trim(),
+        "createdAt": FieldValue.serverTimestamp(),
       });
 
+
       showMessage("Service Added Successfully", Colors.green);
+
       name.clear();
       charges.clear();
       desc.clear();
-
+      date.clear();
+      fromTime.clear();
+      toTime.clear();
       setState(() {
-        selectedImage = null;
+        selectedImages.clear();
         selectedService = services.first;
+        selectedDate = null;
+        selectedTime = null;
       });
     } catch (e) {
       showMessage(e.toString(), Colors.red);
     }
   }
-
   Future<void> getImage() async {
     final XFile? image = await _imagePicker.pickImage(
       source: ImageSource.gallery,
@@ -135,9 +171,59 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       body: Column(
         children: [
           const SizedBox(height: 70),
-          const Text(
-            "Service Details",
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Service Details",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.logout, color: Colors.red, size: 30),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text("Logout"),
+                        content: const Text("Are you sure you want to logout?"),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Text("Cancel"),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                            ),
+                            onPressed: () async {
+                              Navigator.pop(context);
+
+                              await DatabaseMethods().logOut();
+
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const Login(),
+                                ),
+                                (route) => false,
+                              );
+                            },
+                            child: const Text(
+                              "Logout",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
           Expanded(
@@ -162,26 +248,70 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                           onTap: () {
                             getImage();
                           },
-                          child: Container(
-                            height: 150,
-                            width: 150,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              border: Border.all(color: Colors.black),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: selectedImage == null
-                                ? const Icon(
-                                    Icons.camera_alt_outlined,
-                                    size: 24,
-                                  )
-                                : ClipRRect(
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: Image.file(
-                                      selectedImage!,
-                                      fit: BoxFit.cover,
+                          child:Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Wrap(
+                              spacing: 10,
+                              runSpacing: 10,
+                              children: [
+                                GestureDetector(
+                                  onTap: pickImages,
+                                  child: Container(
+                                    width: 110,
+                                    height: 110,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey),
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                    child: const Icon(
+                                      Icons.add,
+                                      size: 40,
+                                      color: Colors.grey,
                                     ),
                                   ),
+                                ),
+
+                                ...selectedImages.asMap().entries.map((entry) {
+                                  int index = entry.key;
+                                  XFile image = entry.value;
+
+                                  return Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(15),
+                                        child: Image.file(
+                                          File(image.path),
+                                          width: 110,
+                                          height: 110,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+
+                                      Positioned(
+                                        right: 5,
+                                        top: 5,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              selectedImages.removeAt(index);
+                                            });
+                                          },
+                                          child: const CircleAvatar(
+                                            radius: 12,
+                                            backgroundColor: Colors.red,
+                                            child: Icon(
+                                              Icons.close,
+                                              size: 15,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -416,58 +546,98 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                       ),
                       const SizedBox(height: 20),
 
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(
-                          "Available Time",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16),
-                        padding: const EdgeInsets.symmetric(horizontal: 15),
-                        decoration: BoxDecoration(
-                          color: const Color(0xffececf8),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: TextFormField(
-                          controller: time,
-                          readOnly: true,
-                          onTap: pickTime,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            color: Colors.black,
-                          ),
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: "Select Time",
-                            hintStyle: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.black,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 20),
+                                  child: Text(
+                                    "From Time",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Container(
+                                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xffececf8),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: TextFormField(
+                                    controller: fromTime,
+                                    readOnly: true,
+                                    onTap: pickFromTime,
+                                    decoration: const InputDecoration(
+                                      border: InputBorder.none,
+                                      hintText: "From",
+                                      hintStyle: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),
+                                      suffixIcon: Icon(Icons.access_time),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            suffixIcon: Icon(Icons.access_time),
                           ),
-                        ),
+
+                          const SizedBox(width: 10),
+
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 20),
+                                  child: Text(
+                                    "To Time",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Container(
+                                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xffececf8),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: TextFormField(
+                                    controller: toTime,
+                                    readOnly: true,
+                                    onTap: pickToTime,
+                                    decoration: const InputDecoration(
+                                      border: InputBorder.none,
+                                      hintText: "To",
+                                      hintStyle: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),
+                                      suffixIcon: Icon(Icons.access_time),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                       SizedBox(height: 20.0),
                       Padding(
                         padding: const EdgeInsets.only(bottom: 30.0),
                         child: GestureDetector(
                           onTap: () async {
-                            if (selectedImage == null) {
-                              showMessage("Please select an image", Colors.red);
+                            if (selectedImages.isEmpty) {
+                              showMessage("Please select at least one image", Colors.red);
                               return;
                             }
-
                             if (name.text.trim().isEmpty) {
                               showMessage(
                                 "Please enter service provider name",

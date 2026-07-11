@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:servicebooking/pages/book_page.dart';
+import 'package:servicebooking/pages/categories.dart';
+import 'package:servicebooking/services/database.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -9,6 +12,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  DatabaseMethods databaseMethods = DatabaseMethods();
+
   final List<Map<String, String>> services = [
     {"title": "Cleaning", "image": "assets/images/cleaning.png"},
     {"title": "Painting", "image": "assets/images/painting.png"},
@@ -39,6 +44,7 @@ class _HomeState extends State<Home> {
       "price": "\$18/Hour",
     },
   ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,13 +76,24 @@ class _HomeState extends State<Home> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              "Hello, maria",
-                              style: TextStyle(
-                                color: Colors.orange,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            FutureBuilder<DocumentSnapshot>(
+                              future: databaseMethods.getUserDetails(),
+                              builder: (context, snapshot) {
+                                if (!snapshot.hasData) {
+                                  return const SizedBox();
+                                }
+                                final userData =
+                                    snapshot.data!.data()
+                                        as Map<String, dynamic>;
+                                return Text(
+                                  "Hi ${userData["name"]}",
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.orange,
+                                  ),
+                                );
+                              },
                             ),
                             ClipRRect(
                               borderRadius: BorderRadius.circular(25),
@@ -99,7 +116,7 @@ class _HomeState extends State<Home> {
                         ),
                         SizedBox(height: 20.0),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                          padding: const EdgeInsets.only(left: 10.0),
                           width: MediaQuery.of(context).size.width,
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -117,6 +134,7 @@ class _HomeState extends State<Home> {
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 vertical: 15.0,
+                                horizontal: 10.0,
                               ),
                             ),
                           ),
@@ -124,41 +142,78 @@ class _HomeState extends State<Home> {
                         SizedBox(height: 20.0),
                         SizedBox(
                           height: 100,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: services.length,
-                            itemBuilder: (context, index) {
-                              return Container(
-                                width: 90,
-                                margin: const EdgeInsets.only(right: 15),
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      height: 70,
-                                      width: 70,
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade200,
-                                        borderRadius: BorderRadius.circular(45),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(15.0),
-                                        child: Image.asset(
-                                          services[index]["image"]!,
-                                          fit: BoxFit.contain,
+                          child: FutureBuilder<QuerySnapshot>(
+                            future: databaseMethods.getServiceDetails(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const SizedBox();
+                              }
+
+                              if (!snapshot.hasData ||
+                                  snapshot.data!.docs.isEmpty) {
+                                return const Center(
+                                  child: Text("No Categories"),
+                                );
+                              }
+
+                              return ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: snapshot.data!.docs.length,
+                                itemBuilder: (context, index) {
+                                  final data =
+                                      snapshot.data!.docs[index].data()
+                                          as Map<String, dynamic>;
+
+                                  List<dynamic> images = data["imageUrls"] ?? [];
+
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => Categories(
+                                            category: data["category"],
+                                          ),
                                         ),
+                                      );
+                                    },
+                                    child: Container(
+                                      width: 90,
+                                      margin: const EdgeInsets.only(right: 15),
+                                      child: Column(
+                                        children: [
+                                          Container(
+                                            height: 70,
+                                            width: 70,
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.shade200,
+                                              borderRadius:
+                                                  BorderRadius.circular(45),
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(45),
+                                              child:Image.network(
+                                                images.first,
+                                                fit: BoxFit.cover,
+                                              )
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            data["category"],
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                              color: Color(0xff284a79),
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      services[index]["title"]!,
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Color(0xff284a79),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  );
+                                },
                               );
                             },
                           ),
