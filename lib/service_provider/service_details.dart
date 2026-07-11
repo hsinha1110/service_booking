@@ -20,8 +20,9 @@ class _ServiceDetailsState extends State<ServiceDetails> {
   final TextEditingController charges = TextEditingController();
   final TextEditingController desc = TextEditingController();
   final TextEditingController date = TextEditingController();
-  TextEditingController fromTime = TextEditingController();
-  TextEditingController toTime = TextEditingController();  final _formKey = GlobalKey<FormState>();
+  final TextEditingController fromTime = TextEditingController();
+  final TextEditingController toTime = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   final ImagePicker _imagePicker = ImagePicker();
 
   DateTime? selectedDate;
@@ -84,6 +85,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       });
     }
   }
+
   void showMessage(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -333,7 +335,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                         margin: EdgeInsets.only(left: 16.0, right: 16.0),
                         padding: EdgeInsets.symmetric(horizontal: 15.0),
                         decoration: BoxDecoration(
-                          color: Colors.transparent,
+                          color: const Color(0xffececf8),
                           borderRadius: BorderRadius.circular(10.0),
                         ),
                         child: TextFormField(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:servicebooking/pages/book_details.dart';
 
 class Details extends StatefulWidget {
   final Map<String, dynamic> services;
@@ -26,25 +27,38 @@ class _DetailsState extends State<Details> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 /// Back Button
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    width: 45,
-                    height: 45,
-                    decoration: BoxDecoration(
-                      color: const Color(0xff284a79),
-                      borderRadius: BorderRadius.circular(12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xff284a79),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_ios_new,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new,
-                      color: Colors.white,
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          "Service Details",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
 
                 /// Blue Card
                 Container(
@@ -55,11 +69,9 @@ class _DetailsState extends State<Details> {
                   ),
                   child: Stack(
                     children: [
-
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-
                           Text(
                             widget.services["category"] ?? "",
                             style: const TextStyle(
@@ -87,13 +99,14 @@ class _DetailsState extends State<Details> {
                               scrollDirection: Axis.horizontal,
                               itemCount: images.length,
                               separatorBuilder: (_, __) =>
-                              const SizedBox(width: 10),
+                                  const SizedBox(width: 10),
                               itemBuilder: (context, index) {
                                 return ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
                                   child: Image.network(
                                     images[index].toString(),
-                                    width: MediaQuery.of(context).size.width/1.2,
+                                    width:
+                                        MediaQuery.of(context).size.width / 1.2,
                                     fit: BoxFit.cover,
                                   ),
                                 );
@@ -146,20 +159,16 @@ class _DetailsState extends State<Details> {
                 /// Time
                 Row(
                   children: [
-
                     Container(
                       padding: const EdgeInsets.all(15),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 8,
-                          ),
+                          BoxShadow(color: Colors.black12, blurRadius: 8),
                         ],
                       ),
-                      child: const Icon(Icons.alarm,size:30),
+                      child: const Icon(Icons.alarm, size: 30),
                     ),
 
                     const SizedBox(width: 15),
@@ -182,20 +191,16 @@ class _DetailsState extends State<Details> {
                 /// Date
                 Row(
                   children: [
-
                     Container(
                       padding: const EdgeInsets.all(15),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 8,
-                          ),
+                          BoxShadow(color: Colors.black12, blurRadius: 8),
                         ],
                       ),
-                      child: const Icon(Icons.calendar_month,size:30),
+                      child: const Icon(Icons.calendar_month, size: 30),
                     ),
 
                     const SizedBox(width: 15),
@@ -226,7 +231,12 @@ class _DetailsState extends State<Details> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => BookDetails()),
+                      );
+                    },
                     child: const Text(
                       "Book Now",
                       style: TextStyle(
@@ -237,8 +247,6 @@ class _DetailsState extends State<Details> {
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -246,4 +254,4 @@ class _DetailsState extends State<Details> {
       ),
     );
   }
- }
+}

@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:servicebooking/pages/book_page.dart';
 import 'package:servicebooking/pages/categories.dart';
 import 'package:servicebooking/pages/details.dart';
 import 'package:servicebooking/services/database.dart';
