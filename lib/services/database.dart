@@ -27,12 +27,16 @@ class DatabaseMethods {
     required String fromTime,
     required String toTime,
     required String hourlyCharge,
+    required String providerProfileImage
   }) async {
     await _firestore.collection("bookings").add({
       "customerId": customerId,
       "customerName": customerName,
       "customerEmail": customerEmail,
+      "providerId": providerId,
       "providerName": providerName,
+      "providerProfileImage": providerProfileImage,
+      "serviceId": serviceId,
       "category": category,
       "hourlyCharge": hourlyCharge,
       "bookingDate": bookingDate,
@@ -53,7 +57,25 @@ class DatabaseMethods {
         .where("customerId", isEqualTo: uid)
         .get();
   }
+  Future<QuerySnapshot<Map<String, dynamic>>> getProviderBookings() async {
+    String uid = _auth.currentUser!.uid;
 
+    return await _firestore
+        .collection("bookings")
+        .where("providerId", isEqualTo: uid)
+        .get();
+  }
+  Future<void> acceptBooking(String bookingId) async {
+    await _firestore.collection("bookings").doc(bookingId).update({
+      "status": "Accepted",
+    });
+  }
+
+  Future<void> rejectBooking(String bookingId) async {
+    await _firestore.collection("bookings").doc(bookingId).update({
+      "status": "Rejected",
+    });
+  }
   Future<UserCredential> signUp({
     required String name,
     required String email,

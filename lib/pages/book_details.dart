@@ -7,7 +7,6 @@ class BookDetails extends StatefulWidget {
   final Map<String, dynamic> services;
   const BookDetails({super.key, required this.services});
 
-
   @override
   State<BookDetails> createState() => _BookDetailsState();
 }
@@ -22,6 +21,8 @@ class _BookDetailsState extends State<BookDetails> {
   @override
   void initState() {
     super.initState();
+    print(widget.services);
+    print(widget.services["providerProfileImage"]);
     getUserData();
   }
 
@@ -40,6 +41,7 @@ class _BookDetailsState extends State<BookDetails> {
       ),
     );
   }
+
   Future<void> getUserData() async {
     DocumentSnapshot doc = await databaseMethods.getUserDetails();
 
@@ -53,6 +55,7 @@ class _BookDetailsState extends State<BookDetails> {
       });
     }
   }
+
   Future<void> pickDate() async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -180,7 +183,8 @@ class _BookDetailsState extends State<BookDetails> {
                           );
                         }
 
-                        final user = snapshot.data!.data() as Map<String, dynamic>;
+                        final user =
+                            snapshot.data!.data() as Map<String, dynamic>;
                         print(user);
                         customerName.text = user["name"] ?? "";
                         customerEmail.text = user["email"] ?? "";
@@ -225,7 +229,7 @@ class _BookDetailsState extends State<BookDetails> {
                         ),
 
                         decoration: const InputDecoration(
-                           border: InputBorder.none,
+                          border: InputBorder.none,
                           hintStyle: TextStyle(
                             color: Colors.black, // Hint text color
                             fontSize: 20,
@@ -435,24 +439,33 @@ class _BookDetailsState extends State<BookDetails> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                           onPressed: () async {
-
-                             await databaseMethods.bookService(
-                               customerId: FirebaseAuth.instance.currentUser!.uid,
-                               customerName: customerName.text,
-                               customerEmail: customerEmail.text,
-
-                               providerId: widget.services["providerId"]?.toString() ?? "",
-                               providerName: widget.services["providerName"]?.toString() ?? "",
-                               category: widget.services["category"]?.toString() ?? "",
-                               serviceId: widget.services["id"]?.toString() ?? "",
-                               hourlyCharge: widget.services["hourlyCharge"].toString()??"",
-                               bookingDate: date.text,
-                               fromTime: fromTime.text,
-                               toTime: toTime.text,
-                             );
-                             showMessage("Booking Successful", Colors.green);
-                           },
+                        onPressed: () async {
+                          await databaseMethods.bookService(
+                            customerId: FirebaseAuth.instance.currentUser!.uid,
+                            customerName: customerName.text,
+                            customerEmail: customerEmail.text,
+                            providerId:
+                                widget.services["providerId"]?.toString() ?? "",
+                            providerName:
+                                widget.services["providerName"]?.toString() ??
+                                "",
+                            category:
+                                widget.services["category"]?.toString() ?? "",
+                            serviceId:
+                                widget.services["serviceId"]?.toString() ?? "",
+                            hourlyCharge:
+                                widget.services["hourlyCharge"]?.toString() ??
+                                "",
+                            bookingDate: date.text,
+                            fromTime: fromTime.text,
+                            toTime: toTime.text,
+                            providerProfileImage:
+                                widget.services["profileImage"]
+                                    ?.toString() ??
+                                "",
+                          );
+                          showMessage("Booking Successful", Colors.green);
+                        },
 
                         child: const Text(
                           "Confirm Booking",

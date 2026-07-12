@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -22,6 +23,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
   final TextEditingController date = TextEditingController();
   final TextEditingController fromTime = TextEditingController();
   final TextEditingController toTime = TextEditingController();
+
   final _formKey = GlobalKey<FormState>();
   final ImagePicker _imagePicker = ImagePicker();
 
@@ -73,6 +75,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       });
     }
   }
+
   Future<void> pickToTime() async {
     TimeOfDay? pickedTime = await showTimePicker(
       context: context,
@@ -119,12 +122,22 @@ class _ServiceDetailsState extends State<ServiceDetails> {
 
     return imageUrls;
   }
+
   Future<void> uploadService() async {
     try {
       List<String> imageUrls = await uploadImages();
 
-      await FirebaseFirestore.instance.collection("services").add({
-        "providerName": name.text.trim(),
+      // Current provider details
+      DocumentSnapshot userDoc = await databaseMethods.getUserDetails();
+      Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+
+      final docRef = FirebaseFirestore.instance.collection("services").doc();
+
+      await docRef.set({
+        "serviceId": docRef.id,
+        "providerId": FirebaseAuth.instance.currentUser!.uid,
+        "providerName": userData["name"], 
+        "providerProfileImage": userData["profileImage"],
         "hourlyCharge": charges.text.trim(),
         "category": selectedService,
         "description": desc.text.trim(),
@@ -135,7 +148,6 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         "createdAt": FieldValue.serverTimestamp(),
       });
 
-
       showMessage("Service Added Successfully", Colors.green);
 
       name.clear();
@@ -144,6 +156,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       date.clear();
       fromTime.clear();
       toTime.clear();
+
       setState(() {
         selectedImages.clear();
         selectedService = services.first;
@@ -154,6 +167,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       showMessage(e.toString(), Colors.red);
     }
   }
+
   Future<void> getImage() async {
     final XFile? image = await _imagePicker.pickImage(
       source: ImageSource.gallery,
@@ -204,7 +218,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                             onPressed: () async {
                               Navigator.pop(context);
 
-                              await DatabaseMethods().logOut();
+                              await databaseMethods.logOut();
 
                               Navigator.pushAndRemoveUntil(
                                 context,
@@ -250,7 +264,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                           onTap: () {
                             getImage();
                           },
-                          child:Padding(
+                          child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: Wrap(
                               spacing: 10,
@@ -567,8 +581,12 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                                 ),
                                 const SizedBox(height: 10),
                                 Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 15,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xffececf8),
                                     borderRadius: BorderRadius.circular(10),
@@ -580,7 +598,10 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                                     decoration: const InputDecoration(
                                       border: InputBorder.none,
                                       hintText: "From",
-                                      hintStyle: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),
+                                      hintStyle: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
                                       suffixIcon: Icon(Icons.access_time),
                                     ),
                                   ),
@@ -608,8 +629,12 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                                 ),
                                 const SizedBox(height: 10),
                                 Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 15,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xffececf8),
                                     borderRadius: BorderRadius.circular(10),
@@ -621,7 +646,10 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                                     decoration: const InputDecoration(
                                       border: InputBorder.none,
                                       hintText: "To",
-                                      hintStyle: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),
+                                      hintStyle: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
                                       suffixIcon: Icon(Icons.access_time),
                                     ),
                                   ),
@@ -637,7 +665,10 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                         child: GestureDetector(
                           onTap: () async {
                             if (selectedImages.isEmpty) {
-                              showMessage("Please select at least one image", Colors.red);
+                              showMessage(
+                                "Please select at least one image",
+                                Colors.red,
+                              );
                               return;
                             }
                             if (name.text.trim().isEmpty) {

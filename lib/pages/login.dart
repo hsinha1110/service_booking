@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:servicebooking/main.dart';
 import 'package:servicebooking/pages/bottom_nav.dart';
+import 'package:servicebooking/pages/provider_bottom_nav.dart';
 import 'package:servicebooking/pages/signup.dart';
 import 'package:servicebooking/service_provider/service_details.dart';
 import 'package:servicebooking/services/database.dart';
@@ -44,7 +45,7 @@ class _SignupState extends State<Login> {
       } else {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const ServiceDetails()),
+          MaterialPageRoute(builder: (_) => const ProviderBottomNav()),
         );
       }
     } on FirebaseAuthException catch (e) {

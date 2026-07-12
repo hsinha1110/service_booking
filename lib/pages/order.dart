@@ -61,15 +61,12 @@ class _OrderState extends State<Order> {
             child: FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
               future: databaseMethods.getCustomerBookings(),
               builder: (context, snapshot) {
-
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return SizedBox();
                 }
 
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(
-                    child: Text("No Bookings Found"),
-                  );
+                  return const Center(child: Text("No Bookings Found"));
                 }
 
                 final bookings = snapshot.data!.docs;
@@ -77,7 +74,6 @@ class _OrderState extends State<Order> {
                 return ListView.builder(
                   itemCount: bookings.length,
                   itemBuilder: (context, index) {
-
                     final booking = bookings[index].data();
 
                     return Card(
@@ -88,22 +84,18 @@ class _OrderState extends State<Order> {
                       child: ListTile(
                         title: Text(
                           booking["category"] ?? "",
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
 
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Text("Provider : ${booking["providerName"] ?? ""}"),
+                            Text("Date : ${booking["bookingDate"] ?? ""}"),
                             Text(
-                                "Provider : ${booking["providerName"] ?? ""}"),
-                            Text(
-                                "Date : ${booking["bookingDate"] ?? ""}"),
-                            Text(
-                                "Time : ${booking["fromTime"]} - ${booking["toTime"]}"),
-                            Text(
-                                "₹${booking["hourlyCharge"]}/Hour"),
+                              "Time : ${booking["fromTime"]} - ${booking["toTime"]}",
+                            ),
+                            Text("₹${booking["hourlyCharge"]}/Hour"),
                           ],
                         ),
 
@@ -113,7 +105,13 @@ class _OrderState extends State<Order> {
                             vertical: 5,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.orange,
+                            color: booking["status"] == "Pending"
+                                ? Colors.orange
+                                : booking["status"] == "Accepted"
+                                ? Colors.green
+                                : booking["status"] == "Rejected"
+                                ? Colors.red
+                                : Colors.grey,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(

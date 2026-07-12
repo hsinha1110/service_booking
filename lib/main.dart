@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:servicebooking/pages/provider_bottom_nav.dart';
 import 'package:servicebooking/service_provider/service_details.dart';
 import 'package:servicebooking/services/database.dart';
 import 'firebase_options.dart';
@@ -21,7 +22,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    User? user = FirebaseAuth.instance.currentUser;
     DatabaseMethods databaseMethods = DatabaseMethods();
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -67,12 +67,10 @@ class MyApp extends StatelessWidget {
 
               if (data["role"] == "Customer") {
                 return const BottomNav();
+              } else if (data["role"] == "Service Provider") {
+                return const ProviderBottomNav();
               } else {
-                return const Scaffold(
-                  body: Center(
-                    child:Login(),
-                  ),
-                );
+                return const Login();
               }
             },
           );
