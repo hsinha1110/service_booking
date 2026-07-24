@@ -14,9 +14,14 @@ class _DetailsState extends State<Details> {
   @override
   Widget build(BuildContext context) {
     List<dynamic> images = widget.services["imageUrls"] ?? [];
+
+    print("=========== SERVICE MAP ===========");
     print(widget.services);
+    print("Provider Image => ${widget.services["providerProfileImage"]}");
+    print("Profile Image => ${widget.services["profileImage"]}");
     print(widget.services["availableFromTime"]);
     print(widget.services["availableFromToTime"]);
+
     return Scaffold(
       backgroundColor: Colors.white,
 
@@ -218,7 +223,7 @@ class _DetailsState extends State<Details> {
                   ],
                 ),
 
-                const SizedBox(height: 170),
+                const SizedBox(height: 100),
 
                 /// Book Now
                 SizedBox(
@@ -235,9 +240,8 @@ class _DetailsState extends State<Details> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => BookDetails(
-                            services: widget.services,
-                          ),
+                          builder: (_) =>
+                              BookDetails(services: widget.services),
                         ),
                       );
                     },

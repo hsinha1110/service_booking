@@ -21,8 +21,10 @@ class _BookDetailsState extends State<BookDetails> {
   @override
   void initState() {
     super.initState();
+    print("=========== SERVICE DATA ===========");
     print(widget.services);
-    print(widget.services["providerProfileImage"]);
+    print("providerProfileImage => ${widget.services["providerProfileImage"]}");
+    print("profileImage => ${widget.services["profileImage"]}");
     getUserData();
   }
 
@@ -440,6 +442,14 @@ class _BookDetailsState extends State<BookDetails> {
                           ),
                         ),
                         onPressed: () async {
+                          print("========== BOOKING DEBUG ==========");
+                          print(widget.services);
+                          print(
+                            "providerProfileImage => ${widget.services["providerProfileImage"]}",
+                          );
+                          print(
+                            "SENDING IMAGE => ${widget.services["providerProfileImage"]}",
+                          );
                           await databaseMethods.bookService(
                             customerId: FirebaseAuth.instance.currentUser!.uid,
                             customerName: customerName.text,
@@ -460,11 +470,10 @@ class _BookDetailsState extends State<BookDetails> {
                             fromTime: fromTime.text,
                             toTime: toTime.text,
                             providerProfileImage:
-                                widget.services["profileImage"]
+                                widget.services["providerProfileImage"]
                                     ?.toString() ??
                                 "",
                           );
-                          showMessage("Booking Successful", Colors.green);
                         },
 
                         child: const Text(

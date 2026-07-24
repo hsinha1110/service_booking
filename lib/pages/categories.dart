@@ -6,10 +6,7 @@ import 'package:servicebooking/services/database.dart';
 class Categories extends StatefulWidget {
   final String category;
 
-  const Categories({
-    super.key,
-    required this.category,
-  });
+  const Categories({super.key, required this.category});
 
   @override
   State<Categories> createState() => _CategoriesState();
@@ -52,7 +49,7 @@ class _CategoriesState extends State<Categories> {
                       ),
                     ),
                   ),
-                 ],
+                ],
               ),
             ),
 
@@ -84,34 +81,39 @@ class _CategoriesState extends State<Categories> {
                     itemBuilder: (context, index) {
                       final data = snapshot.data!.docs[index].data();
                       final doc = snapshot.data!.docs[index];
-
+                      print("========== CATEGORY ==========");
+                      print(data);
+                      print(data["providerProfileImage"]);
                       print(doc.id);
                       print(doc.data());
                       // First image nikal lo
                       List<dynamic> images = data["imageUrls"] ?? [];
-                      String image = images.isNotEmpty ? images.first.toString() : "";
+                      String image = images.isNotEmpty
+                          ? images.first.toString()
+                          : "";
 
                       return GestureDetector(
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => Details(
-                                services: data,
-                              ),
+                              builder: (_) => Details(services: data),
                             ),
                           );
                         },
                         child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
                           height: 200,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20),
                             image: image.isNotEmpty
                                 ? DecorationImage(
-                              image: NetworkImage(image),
-                              fit: BoxFit.cover,
-                            )
+                                    image: NetworkImage(image),
+                                    fit: BoxFit.cover,
+                                  )
                                 : null,
                             color: Colors.grey.shade300,
                           ),

@@ -136,7 +136,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       await docRef.set({
         "serviceId": docRef.id,
         "providerId": FirebaseAuth.instance.currentUser!.uid,
-        "providerName": userData["name"], 
+        "providerName": userData["name"],
         "providerProfileImage": userData["profileImage"],
         "hourlyCharge": charges.text.trim(),
         "category": selectedService,

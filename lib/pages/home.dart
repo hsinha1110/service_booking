@@ -79,19 +79,22 @@ class _HomeState extends State<Home> {
                             FutureBuilder<DocumentSnapshot>(
                               future: databaseMethods.getUserDetails(),
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
                                   return const SizedBox(
                                     height: 56,
                                     child: SizedBox(),
                                   );
                                 }
 
-                                if (!snapshot.hasData || snapshot.data!.data() == null) {
+                                if (!snapshot.hasData ||
+                                    snapshot.data!.data() == null) {
                                   return const Text("Hi");
                                 }
 
                                 final userData =
-                                snapshot.data!.data() as Map<String, dynamic>;
+                                    snapshot.data!.data()
+                                        as Map<String, dynamic>;
 
                                 return SizedBox(
                                   width: MediaQuery.of(context).size.width - 40,
@@ -116,13 +119,15 @@ class _HomeState extends State<Home> {
                                         radius: 28,
                                         backgroundColor: Colors.grey.shade200,
                                         backgroundImage:
-                                        (userData["profileImage"] != null &&
-                                            userData["profileImage"] != "")
-                                            ? NetworkImage(userData["profileImage"])
+                                            (userData["profileImage"] != null &&
+                                                userData["profileImage"] != "")
+                                            ? NetworkImage(
+                                                userData["profileImage"],
+                                              )
                                             : null,
                                         child:
-                                        (userData["profileImage"] == null ||
-                                            userData["profileImage"] == "")
+                                            (userData["profileImage"] == null ||
+                                                userData["profileImage"] == "")
                                             ? const Icon(Icons.person)
                                             : null,
                                       ),
@@ -192,9 +197,18 @@ class _HomeState extends State<Home> {
                                       snapshot.data!.docs[index].data()
                                           as Map<String, dynamic>;
 
-                                  List<dynamic> images = data["imageUrls"] ?? [];
+                                  List<dynamic> images =
+                                      data["imageUrls"] ?? [];
 
-                                  return GestureDetector(
+                                  final services =
+                                  snapshot.data!.docs[index].data() as Map<String, dynamic>;
+
+                                  print("=================================");
+                                  print("SERVICE DOC ID => ${snapshot.data!.docs[index].id}");
+                                  print("SERVICE MAP => $services");
+                                  print("IMAGE => ${services["providerProfileImage"]}");
+
+                                   return GestureDetector(
                                     onTap: () {
                                       Navigator.push(
                                         context,
@@ -221,10 +235,10 @@ class _HomeState extends State<Home> {
                                             child: ClipRRect(
                                               borderRadius:
                                                   BorderRadius.circular(45),
-                                              child:Image.network(
+                                              child: Image.network(
                                                 images.first,
                                                 fit: BoxFit.cover,
-                                              )
+                                              ),
                                             ),
                                           ),
                                           const SizedBox(height: 8),
@@ -267,15 +281,11 @@ class _HomeState extends State<Home> {
               future: databaseMethods.getServiceDetails(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+                  return const Center(child: CircularProgressIndicator());
                 }
 
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(
-                    child: Text("No Services Found"),
-                  );
+                  return const Center(child: Text("No Services Found"));
                 }
 
                 return ListView.builder(
@@ -335,9 +345,7 @@ class _HomeState extends State<Home> {
 
                                   const SizedBox(height: 5),
 
-                                  Text(
-                                    "By ${services["providerName"]}",
-                                  ),
+                                  Text("By ${services["providerName"]}"),
 
                                   const SizedBox(height: 10),
 
@@ -354,10 +362,19 @@ class _HomeState extends State<Home> {
                                       Expanded(
                                         child: Container(
                                           alignment: Alignment.center,
-                                          padding: const EdgeInsets.symmetric(vertical: 12),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 12,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: const Color.fromARGB(255, 94, 172, 202),
-                                            borderRadius: BorderRadius.circular(10),
+                                            color: const Color.fromARGB(
+                                              255,
+                                              94,
+                                              172,
+                                              202,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
                                           ),
                                           child: Text(
                                             "${services["hourlyCharge"]}/Hour",
@@ -378,16 +395,20 @@ class _HomeState extends State<Home> {
                                             Navigator.push(
                                               context,
                                               MaterialPageRoute(
-                                                builder: (_) => Details(services: services),
+                                                builder: (_) =>
+                                                    Details(services: services),
                                               ),
                                             );
                                           },
                                           child: Container(
                                             alignment: Alignment.center,
-                                            padding: const EdgeInsets.symmetric(vertical: 12),
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 12,
+                                            ),
                                             decoration: BoxDecoration(
                                               color: const Color(0xff284a79),
-                                              borderRadius: BorderRadius.circular(10),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
                                             ),
                                             child: const Text(
                                               "Book Now",
@@ -412,7 +433,7 @@ class _HomeState extends State<Home> {
                   },
                 );
               },
-            )
+            ),
           ],
         ),
       ),

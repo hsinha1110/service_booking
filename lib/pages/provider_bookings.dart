@@ -33,17 +33,12 @@ class _ProviderBookingsState extends State<ProviderBookings> {
         future: databaseMethods.getProviderBookings(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(
-              child: Text(
-                "No Bookings Found",
-                style: TextStyle(fontSize: 18),
-              ),
+              child: Text("No Bookings Found", style: TextStyle(fontSize: 18)),
             );
           }
 
@@ -56,58 +51,67 @@ class _ProviderBookingsState extends State<ProviderBookings> {
               final booking = bookings[index].data();
               print(booking);
               print(booking["providerProfileImage"]);
-              final bookingDoc = bookings[index]; // <-- Ye DocumentSnapshot hai
+              final bookingDoc = bookings[index];
 
-               return Container(
+              return Container(
                 margin: const EdgeInsets.only(bottom: 15),
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
                   boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.shade300,
-                      blurRadius: 8,
-                    ),
+                    BoxShadow(color: Colors.grey.shade300, blurRadius: 8),
                   ],
                 ),
 
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(width: 15),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CircleAvatar(
-                              radius: 28,
-                              backgroundColor: Colors.grey.shade300,
-                              backgroundImage:
+                        CircleAvatar(
+                          radius: 28,
+                          backgroundColor: Colors.grey.shade300,
+                          backgroundImage:
                               booking["providerProfileImage"] != null &&
-                                  booking["providerProfileImage"].toString().isNotEmpty
-                                  ? NetworkImage(booking["providerProfileImage"])
-                                  : null,
-                              child: booking["providerProfileImage"] == null ||
-                                  booking["providerProfileImage"].toString().isEmpty
-                                  ? const Icon(Icons.person)
-                                  : null,
-                            ),
-                            Text(
-                              booking["customerName"] ?? "",
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                                  booking["providerProfileImage"]
+                                      .toString()
+                                      .isNotEmpty
+                              ? NetworkImage(booking["providerProfileImage"])
+                              : null,
+                          child:
+                              booking["providerProfileImage"] == null ||
+                                  booking["providerProfileImage"]
+                                      .toString()
+                                      .isEmpty
+                              ? const Icon(Icons.person)
+                              : null,
+                        ),
+
+                        const SizedBox(width: 15),
+
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                booking["customerName"] ?? "",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
 
-                            const SizedBox(height: 3),
+                              const SizedBox(height: 4),
 
-                            Text(booking["customerEmail"] ?? ""),
-                          ],
-                        )
+                              Text(
+                                booking["customerEmail"] ?? "",
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
 
@@ -115,14 +119,14 @@ class _ProviderBookingsState extends State<ProviderBookings> {
 
                     Row(
                       children: [
-                        const Icon(Icons.home_repair_service,
-                            color: Color(0xff284a79)),
+                        const Icon(
+                          Icons.home_repair_service,
+                          color: Color(0xff284a79),
+                        ),
                         const SizedBox(width: 10),
                         Text(
                           booking["category"] ?? "",
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -131,8 +135,10 @@ class _ProviderBookingsState extends State<ProviderBookings> {
 
                     Row(
                       children: [
-                        const Icon(Icons.calendar_today,
-                            color: Color(0xff284a79)),
+                        const Icon(
+                          Icons.calendar_today,
+                          color: Color(0xff284a79),
+                        ),
                         const SizedBox(width: 10),
                         Text(booking["bookingDate"] ?? ""),
                       ],
@@ -142,12 +148,9 @@ class _ProviderBookingsState extends State<ProviderBookings> {
 
                     Row(
                       children: [
-                        const Icon(Icons.access_time,
-                            color: Color(0xff284a79)),
+                        const Icon(Icons.access_time, color: Color(0xff284a79)),
                         const SizedBox(width: 10),
-                        Text(
-                          "${booking["fromTime"]} - ${booking["toTime"]}",
-                        ),
+                        Text("${booking["fromTime"]} - ${booking["toTime"]}"),
                       ],
                     ),
 
@@ -155,14 +158,14 @@ class _ProviderBookingsState extends State<ProviderBookings> {
 
                     Row(
                       children: [
-                        const Icon(Icons.currency_rupee,
-                            color: Color(0xff284a79)),
+                        const Icon(
+                          Icons.currency_rupee,
+                          color: Color(0xff284a79),
+                        ),
                         const SizedBox(width: 10),
                         Text(
                           booking["hourlyCharge"] ?? "",
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -198,7 +201,9 @@ class _ProviderBookingsState extends State<ProviderBookings> {
                                 backgroundColor: Colors.red,
                               ),
                               onPressed: () async {
-                                await databaseMethods.rejectBooking(bookingDoc.id);
+                                await databaseMethods.rejectBooking(
+                                  bookingDoc.id,
+                                );
 
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
@@ -224,7 +229,9 @@ class _ProviderBookingsState extends State<ProviderBookings> {
                                 backgroundColor: Colors.green,
                               ),
                               onPressed: () async {
-                                await databaseMethods.acceptBooking(bookingDoc.id);
+                                await databaseMethods.acceptBooking(
+                                  bookingDoc.id,
+                                );
 
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
