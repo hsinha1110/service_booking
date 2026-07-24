@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:servicebooking/pages/provider_chat.dart';
 import 'package:servicebooking/services/database.dart';
 
 class ProviderBookings extends StatefulWidget {
@@ -172,79 +173,133 @@ class _ProviderBookingsState extends State<ProviderBookings> {
 
                     const SizedBox(height: 15),
 
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 15,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.shade100,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        booking["status"] ?? "",
-                        style: const TextStyle(
-                          color: Colors.orange,
-                          fontWeight: FontWeight.bold,
+                    if (booking["status"] == "Pending")
+                      GestureDetector(
+                        onTap: () async {
+                          await bookingDoc.reference.update({
+                            "status": "Accepted",
+                          });
+                          setState(() {});
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 15,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade100,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            "Pending",
+                            style: TextStyle(
+                              color: Colors.orange,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-
                     const SizedBox(height: 20),
 
-                    if (booking["status"] == "Pending")
+                    // Rejected
+                    if (booking["status"] == "Rejected")
+                      GestureDetector(
+                        onTap: () async {
+                          await bookingDoc.reference.update({
+                            "status": "Accepted",
+                          });
+
+                          setState(() {});
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 15,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade100,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            "Rejected",
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 20),
+
+                    if (booking["status"] == "Accepted")
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Expanded(
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
+                          GestureDetector(
+                            onTap: () async {
+                              await bookingDoc.reference.update({
+                                "status": "Accepted",
+                              });
+                              setState(() {});
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 15,
+                                vertical: 8,
                               ),
-                              onPressed: () async {
-                                await databaseMethods.rejectBooking(
-                                  bookingDoc.id,
-                                );
-
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Booking Rejected"),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-
-                                setState(() {});
-                              },
+                              decoration: BoxDecoration(
+                                color: Colors.green.shade100,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
                               child: const Text(
-                                "Reject",
-                                style: TextStyle(color: Colors.white),
+                                "Accepted",
+                                style: TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
 
-                          const SizedBox(width: 15),
-
-                          Expanded(
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                              ),
-                              onPressed: () async {
-                                await databaseMethods.acceptBooking(
-                                  bookingDoc.id,
-                                );
-
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Booking Accepted"),
-                                    backgroundColor: Colors.green,
+                          GestureDetector(
+                            onTap: () {
+                              // Navigate to Chat Screen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ProviderChat(
+                                    bookingId: bookingDoc.id,
+                                    customerId: booking["customerId"],
+                                    providerId: booking["providerId"],
                                   ),
-                                );
-
-                                setState(() {});
-                              },
-                              child: const Text(
-                                "Accept",
-                                style: TextStyle(color: Colors.white),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xff284a79),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(
+                                    Icons.chat,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    "Chat",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),

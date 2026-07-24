@@ -6,7 +6,6 @@ import 'package:servicebooking/services/database.dart';
 
 class Order extends StatefulWidget {
   const Order({super.key});
-
   @override
   State<Order> createState() => _OrderState();
 }
@@ -75,8 +74,11 @@ class _OrderState extends State<Order> {
 
                 return ListView.builder(
                   itemCount: bookings.length,
+
                   itemBuilder: (context, index) {
                     final booking = bookings[index].data();
+                    final bookingDoc = bookings[index];
+
                     return Card(
                       margin: const EdgeInsets.symmetric(
                         horizontal: 15,
@@ -170,11 +172,14 @@ class _OrderState extends State<Order> {
 
                                   GestureDetector(
                                     onTap: () {
-                                      // Open Chat Screen
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (_) => Chat(),
+                                          builder: (_) => Chat(
+                                            bookingId: bookingDoc.id,
+                                            customerId: booking["customerId"],
+                                            providerId: booking["providerId"],
+                                          ),
                                         ),
                                       );
                                     },

@@ -38,7 +38,6 @@ class _BottomNavState extends State<BottomNav> {
         items: [
           Icon(Icons.home_outlined, color: Colors.white, size: 25.0),
           Icon(Icons.shop_outlined, color: Colors.white, size: 25.0),
-          Icon(Icons.chat_outlined, color: Colors.white, size: 25.0),
           Icon(Icons.person, color: Colors.white, size: 25.0),
         ],
       ),

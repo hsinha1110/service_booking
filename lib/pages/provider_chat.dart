@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:servicebooking/pages/bottom_nav.dart';
 import 'package:servicebooking/services/database.dart';
 
-class Chat extends StatefulWidget {
+class ProviderChat extends StatefulWidget {
   final String bookingId;
   final String customerId;
   final String providerId;
 
-  const Chat({
+  const ProviderChat({
     super.key,
     required this.bookingId,
     required this.customerId,
@@ -17,17 +17,17 @@ class Chat extends StatefulWidget {
   });
 
   @override
-  State<Chat> createState() => _ChatState();
+  State<ProviderChat> createState() => _ProviderChatState();
 }
 
-class _ChatState extends State<Chat> {
+class _ProviderChatState extends State<ProviderChat> {
   final TextEditingController messageController = TextEditingController();
   final DatabaseMethods databaseMethods = DatabaseMethods();
   @override
   void initState() {
     super.initState();
 
-    print("=========== CHAT  ===========");
+    print("=========== PROVIDER CHAT SCREEN ===========");
     print(widget.bookingId);
     print(widget.customerId);
     print(widget.providerId);
@@ -81,7 +81,6 @@ class _ChatState extends State<Chat> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       body: SafeArea(
         child: Column(
           children: [
@@ -123,7 +122,7 @@ class _ChatState extends State<Chat> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Customer",
+                          "Provider",
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -197,42 +196,37 @@ class _ChatState extends State<Chat> {
                   ),
 
                   const SizedBox(width: 10),
-
                   CircleAvatar(
                     radius: 26,
                     backgroundColor: const Color(0xff284a79),
                     child: IconButton(
-                      icon: const Icon(Icons.send, color: Colors.white),
-                        onPressed: () async {
-                          print("🔥 SEND BUTTON CLICKED");
+                      onPressed: () async {
+                        if (messageController.text.trim().isEmpty) return;
 
-                          if (messageController.text.trim().isEmpty) {
-                            print("❌ Message Empty");
-                            return;
-                          }
+                        try {
+                          await databaseMethods.sendMessage(
+                            bookingId: widget.bookingId,
+                            senderId: FirebaseAuth.instance.currentUser!.uid,
+                            receiverId: FirebaseAuth.instance.currentUser!.uid ==
+                                widget.customerId
+                                ? widget.providerId
+                                : widget.customerId,
+                            message: messageController.text.trim(),
+                          );
 
-                          print("Message = ${messageController.text}");
-
-                          try {
-                            await databaseMethods.sendMessage(
-                              bookingId: widget.bookingId,
-                              senderId: FirebaseAuth.instance.currentUser!.uid,
-                              receiverId: FirebaseAuth.instance.currentUser!.uid ==
-                                  widget.customerId
-                                  ? widget.providerId
-                                  : widget.customerId,
-                              message: messageController.text.trim(),
-                            );
-
-                            print("✅ Message Sent");
-                            messageController.clear();
-                          } catch (e) {
-                            print("❌ Error: $e");
-                          }
+                          print("✅ Message Sent");
+                          messageController.clear();
+                        } catch (e) {
+                          print("❌ Error: $e");
                         }
-                     ),
+                      },
+                      icon: const Icon(
+                        Icons.send,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
-                ],
+                 ],
               ),
             ),
           ],

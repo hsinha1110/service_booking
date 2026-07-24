@@ -130,4 +130,40 @@ class DatabaseMethods {
   Future<void> logOut() async {
     await _auth.signOut();
   }
+
+  Future<void> sendMessage({
+    required String bookingId,
+    required String senderId,
+    required String receiverId,
+    required String message,
+  }) async {
+
+    print("BookingId : $bookingId");
+    print("SenderId : $senderId");
+    print("ReceiverId : $receiverId");
+    print("Message : $message");
+
+    await _firestore
+        .collection("chats")
+        .doc(bookingId)
+        .collection("messages")
+        .add({
+      "senderId": senderId,
+      "receiverId": receiverId,
+      "message": message,
+      "timestamp": FieldValue.serverTimestamp(),
+    });
+
+    print("Firestore Success");
+  }
+  Stream<QuerySnapshot<Map<String, dynamic>>> getMessages(
+      String bookingId,
+      ) {
+    return _firestore
+        .collection("chats")
+        .doc(bookingId)
+        .collection("messages")
+        .orderBy("timestamp", descending: false)
+        .snapshots();
+  }
 }
